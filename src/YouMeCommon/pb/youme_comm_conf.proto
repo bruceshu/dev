@@ -1,0 +1,49 @@
+syntax = "proto2";
+option optimize_for = LITE_RUNTIME;
+package YOUMEServiceProtocol;
+import "youme_comm.proto";
+
+enum SERVICE_TYPE
+{
+    SERVICE_IM = 1;
+    SERVICE_RTC  = 2;
+}
+
+// 通用配置请求包体
+message CommConfReq
+{
+	required int32 version = 1;
+	required string appkey = 2;		
+	required bytes verify = 3;										// 验证区
+	required SERVICE_TYPE service_type = 4;							// 细分为不同的业务下发不同的配置
+	required YOUMECommonProtocol.DevicePlatform platform = 5;		// app 平台
+	required string brand = 6;										// 终端品牌
+	required string sys_version = 7;								// 终端系统版本
+	required string cpu_arch = 8;									// cpu 架构
+	required string cpu_chip = 9;									// 主板型号
+	required string pkg_name = 10;									// 包名
+	required string device_token = 11;						
+	required string model = 12;										// 手机型号
+	required int32 sdk_version = 13;								// sdk 版本
+	required string sdk_name = 14;									// sdk 名
+	optional string strZone=15;//区域
+}	
+
+message AccesssInfo
+{
+	required string svr_addr = 1;
+	required uint32 svr_port = 2;
+}	
+	
+// 通用配置应答包体
+message CommConfRsp
+{
+	required int32 version = 1;
+	required int32 ret = 2;									// 返回码, 0成功, 其他失败
+	required uint64 svr_time = 3;							// 服务器时间(毫秒)
+	required int32 appid = 4;								// app 在游密平台的唯一标识
+	required string svr_addr = 5;							// 服务器集群
+	required int32 svr_port = 6;							// 服务器端口
+	repeated YOUMECommonProtocol.NameValue conf = 7;		// 各配置项
+	repeated AccesssInfo svr_list = 8;  //接入服务器列表
+}

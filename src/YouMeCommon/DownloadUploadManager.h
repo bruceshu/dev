@@ -1,0 +1,63 @@
+﻿#pragma once
+#include <YouMeCommon/CrossPlatformDefine/PlatformDef.h>
+#ifdef WIN32
+#include <WinSock2.h>
+#include <WS2tcpip.h>
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/select.h>
+#endif
+#include <YouMeCommon/curl/curl.h>
+
+
+class IUploadProgressCallback {
+	public:
+		virtual void onUploadProgressCallback(void * param, float percent) = 0;
+};
+
+typedef struct progressCallback_s {
+	void * msgSerial;
+	size_t upload_size;
+	size_t fileTotleSize;
+	XUINT64 lastTime;
+	IUploadProgressCallback  * iUploadProgressCallback;
+}progressCallback_t;
+
+class CDownloadUploadManager
+{
+public:
+	static unsigned char ToHex(unsigned char x);
+	static std::string URLEncode(const std::string& srSource);
+	//下载文件
+	static bool DownloadFile(const XString&strUrl, const XString&strSavePath);
+	//上传文件
+	static bool UploadFile(const XString&strUrl, const XString& strSrcPath, std::map<std::string, std::string>& httpHead, std::string& strResponse);
+	static bool UploadFile(const XString&strUrl, const XString& strSrcPath, std::map<std::string, std::string>& httpHead, std::string& strResponse, int bucketType);
+	static bool UploadFile(const XString&strUrl, const XString& strSrcPath, std::map<std::string, std::string>& httpHead, void * param, std::string& strResponse, int bucketType, IUploadProgressCallback * iUploadProgressCallback);
+	//http 请求
+	static bool HttpRequest(const XString& strUrl, const std::string& strBody, std::string& strResponse, bool bPost = true, int iTimeOut = -1, std::map<std::string, std::string>*pHead = NULL);
+	//上传文件使用form
+	static bool UploadFileWithForm(const XString&strUrl, const XString& strSrcPath, std::map<std::string, std::string>& httpHead, std::string& strResponse);
+
+private:
+	//上传文件到up 云接口，这玩意内部使用
+	static bool UploadFileToUpYun(const XString&strUrl, const XString&strSavePath, bool bUpload, std::map<std::string, std::string>& httpHead, std::string& strResponse);
+	static bool UploadFileToUpYunWithProgress(const XString&strUrl, const XString&strSavePath, bool bUpload, std::map<std::string, std::string>& httpHead, void * param, std::string& strResponse, IUploadProgressCallback * iUploadProgressCallback);
+	static size_t OnHttpHead(void *buffer, size_t size, size_t nmemb, void *user_p);
+	static size_t OnDownloadFile(void *buffer, size_t size, size_t nmemb, void *user_p);
+	static size_t OnUploadWrite(void *buffer, size_t size, size_t nmemb, void *user_p);
+	static size_t UploadReadCallback(void *ptr, size_t size, size_t nmemb, void *stream);
+	static bool UploadFilePost(const XString& url, const XString& localPath, std::map<std::string, std::string>& httpHeads);
+	static std::string UploadFileSingle(const XString& url, const XString& localPath, std::map<std::string, std::string>& httpHeads);
+	static std::string UploadFileSlice(const XString& url, const XString& localPath, unsigned int fileSize, std::map<std::string, std::string>& httpHeads);
+	static std::string FileUploadSliceInit(const std::string& url, unsigned int fileSize, std::map<std::string, std::string>& httpHeads);
+	static std::string FileUploadSliceData(const std::string& url, const std::string& localPath,  unsigned int fileSize, std::map<std::string, std::string>& httpHeads, const std::string& response);
+	static std::string FileUploadSliceFinish(const std::string& url, const std::string& localPath, unsigned int fileSize, std::map<std::string, std::string>& httpHeads, const std::string& response);
+	static std::string SendFilePost(const std::string& url, std::map<std::string, std::string>& httpHeaders, std::map<std::string, std::string>& userParams, const unsigned char* buffer, unsigned int size);
+
+	static youmecommon::CURLSH* m_shareHandle;
+	static std::map<std::string, progressCallback_t> m_uploadFileSizeMap;
+};
+

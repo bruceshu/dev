@@ -1,0 +1,69 @@
+syntax = "proto2";
+option optimize_for = LITE_RUNTIME;
+package youmecommon;
+
+enum packettype
+{
+	packettype_unknow=0;
+	packettype_kcp=1;
+	packettype_fec=2;
+	packettype_jit=3;
+}
+
+message commonheadpacket
+{
+	required commonhead head=1;
+}
+
+
+message commonhead
+{
+	required int32 iVer=1; //公共头版本号
+	required packettype type=2;
+}
+
+
+message fechead
+{
+	required int32 iVer=1; //fec 头版本号
+	required int32 iConv =2;// conv 只能接受conv 相同的包
+	required int32 iGroupSerial=3; //fec 一组包的组序号,同一组的包才需要做fec
+	required int32 iGroupItemSerial=4; //在这组fec 包中的序号
+	required int32 iType=5; //1 数据包 2 冗余包
+	required int32 iK =6; //对应 fec 的K
+	required int32 iN=7; //对应fec 的N
+}
+
+message kcphead
+{
+	required int32 iVer=1; //fec 头版本号
+	required int32 iConv =2;
+}
+
+message kcppacket
+{
+	required commonhead comhead=1;
+	required kcphead head=2;
+	required bytes payload=3;
+}
+
+message fecpacket
+{
+	required commonhead comhead=1;
+	required fechead head=2;
+	required bytes payload=3;
+}
+
+
+message jitterbufferhead
+{
+	required int32 iVer=1; //fec 头版本号
+	required int32 iConv =2;// conv 只能接受conv 相同的包
+	required int32 iPacketSerial=3; //包序号
+}
+message jitterbufferpacket
+{
+	required commonhead comhead=1;
+	required jitterbufferhead head=2;
+	required bytes payload =3;
+}
